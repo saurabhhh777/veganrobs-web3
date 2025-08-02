@@ -129,6 +129,9 @@ class Dashboard extends React.Component {
     await this.init(this.props);
   }
   render() {
+    // Check if wallet is connected
+    const isWalletConnected = this.props.account && this.props.account !== "";
+    
     return (
       <Box sx={{ pb: 7 }}>
         <Box
@@ -158,182 +161,206 @@ class Dashboard extends React.Component {
             }}
           >
             <Typography variant="h3">Vegan Rob's Governance Token</Typography>
-            <Stack
-              flexDirection={this.props.matchUpMd ? "row" : "column"}
-              gap={this.props.matchDownLg ? 6 : 9}
-              justifyContent="center"
-              sx={{
-                pt: 4,
-                px: 4,
-              }}
-            >
-              {cards.map((element, key) => (
-                <Box
-                  key={key}
-                  flex="1 1 0"
-                  sx={{
-                    borderRadius: 5,
-                    p: 4,
-                    pt: 2,
-                    border:
-                      this.props.theme.palette.mode === "dark"
-                        ? "none"
-                        : `0.5px solid #CBCBCB`,
-                    bgcolor:
-                      this.props.theme.palette.mode === "dark"
-                        ? this.props.theme.palette.background.paper
-                        : element.color,
-                    boxShadow:
-                      this.props.theme.palette.mode === "dark"
-                        ? "none"
-                        : "0px 0px 10px rgba(0, 0, 0, 0.07)",
-                  }}
-                >
-                  <Stack
-                    flexDirection="row"
-                    alignItems="center"
-                    gap={2}
-                    sx={{ pb: 2 }}
-                  >
-                    <Stack
-                      alignItems="center"
-                      justifyContent="center"
-                      sx={{ height: 40 }}
-                    >
-                      <Box
-                        component="img"
-                        src={
-                          this.props.theme.palette.mode === "dark"
-                            ? element.img_dark
-                            : element.img
-                        }
-                      />
-                    </Stack>
-                    <Typography
-                      sx={{
-                        textTransform: "uppercase",
-                        color: this.props.theme.palette.text.disabled,
-                      }}
-                    >
-                      {element.title}
-                    </Typography>
-                  </Stack>
-                  <Typography
-                    variant={key === 2 ? "subtitle2" : "h1"}
-                    sx={{ textAlign: "center", wordBreak: "break-all" }}
-                  >
-                    {key === 0
-                      ? this.state.totalSupply
-                      : key === 1
-                      ? this.state.holders.length
-                      : key === 2
-                      ? this.state.owner
-                      : 0}
-                  </Typography>
-                </Box>
-              ))}
-            </Stack>
-          </Box>
-        </Box>
-        <Box
-          sx={{
-            pt: 4,
-            px: this.props.matchUpMd ? 7 : 2,
-            maxWidth: "100%",
-          }}
-        >
-          <Typography variant="h3">Members of Vegan Rob's DAO</Typography>
-          <Box
-            sx={{
-              pt: 3,
-              px: this.props.matchUpMd ? 6 : 0,
-            }}
-          >
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow
+            {/* Only show DAO info cards when wallet is connected */}
+            {isWalletConnected ? (
+              <Stack
+                flexDirection={this.props.matchUpMd ? "row" : "column"}
+                gap={this.props.matchDownLg ? 6 : 9}
+                justifyContent="center"
+                sx={{
+                  pt: 4,
+                  px: 4,
+                }}
+              >
+                {cards.map((element, key) => (
+                  <Box
+                    key={key}
+                    flex="1 1 0"
                     sx={{
-                      "& th": {
-                        color: this.props.theme.palette.text.secondary,
-                      },
+                      borderRadius: 5,
+                      p: 4,
+                      pt: 2,
+                      border:
+                        this.props.theme.palette.mode === "dark"
+                          ? "none"
+                          : `0.5px solid #CBCBCB`,
+                      bgcolor:
+                        this.props.theme.palette.mode === "dark"
+                          ? this.props.theme.palette.background.paper
+                          : element.color,
+                      boxShadow:
+                        this.props.theme.palette.mode === "dark"
+                          ? "none"
+                          : "0px 0px 10px rgba(0, 0, 0, 0.07)",
                     }}
                   >
-                    <TableCell align="left">No</TableCell>
-                    <TableCell align="center">Holder Address</TableCell>
-                    <TableCell align="center">Balance</TableCell>
-                    <TableCell align="center">Percentage</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {!this.state.loading
-                    ? this.state.realHolderTable.map((row, index) => (
-                        <TableRow
-                          key={index}
-                          sx={{
-                            "&:last-child td, &:last-child th": { border: 0 },
-                          }}
-                        >
-                          <TableCell align="left">{row.id}</TableCell>
-                          <TableCell align="center">{row.address}</TableCell>
-                          <TableCell align="center">{row.balance}</TableCell>
-                          <TableCell
-                            align="center"
-                            sx={{
-                              color: this.props.theme.palette.success.main,
-                              // color: index % 2 ? this.props.theme.palette.error.main : this.props.theme.palette.success.main
-                            }}
-                          >
-                            {row.percentage}%
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((row, key) => (
-                        <TableRow
-                          key={key}
-                          sx={{
-                            "&:last-child td, &:last-child th": { border: 0 },
-                          }}
-                        >
-                          <TableCell align="left">
-                            <Skeleton />
-                          </TableCell>
-                          <TableCell align="center">
-                            <Skeleton />
-                          </TableCell>
-                          <TableCell align="center">
-                            <Skeleton />
-                          </TableCell>
-                          <TableCell
-                            align="center"
-                            sx={{
-                              color: this.props.theme.palette.success.main,
-                              // color: index % 2 ? this.props.theme.palette.error.main : this.props.theme.palette.success.main
-                            }}
-                          >
-                            <Skeleton />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Stack
-              flexDirection="row"
-              alignItems="flex-end"
-              justifyContent="flex-end"
-              sx={{ pt: 2 }}
-            >
-              <Pagination
-                count={Math.ceil(this.state.holders.length / pageStep)}
-                variant="outlined"
-                shape="rounded"
-                onChange={(event, page) => this.handlePage(event, page)}
-                page={this.state.page}
-              />
-            </Stack>
+                    <Stack
+                      flexDirection="row"
+                      alignItems="center"
+                      gap={2}
+                      sx={{ pb: 2 }}
+                    >
+                      <Stack
+                        alignItems="center"
+                        justifyContent="center"
+                        sx={{ height: 40 }}
+                      >
+                        <Box
+                          component="img"
+                          src={
+                            this.props.theme.palette.mode === "dark"
+                              ? element.img_dark
+                              : element.img
+                          }
+                        />
+                      </Stack>
+                      <Typography
+                        sx={{
+                          textTransform: "uppercase",
+                          color: this.props.theme.palette.text.disabled,
+                        }}
+                      >
+                        {element.title}
+                      </Typography>
+                    </Stack>
+                    <Typography
+                      variant={key === 2 ? "subtitle2" : "h1"}
+                      sx={{ textAlign: "center", wordBreak: "break-all" }}
+                    >
+                      {key === 0
+                        ? this.state.totalSupply
+                        : key === 1
+                        ? this.state.holders.length
+                        : key === 2
+                        ? this.state.owner
+                        : 0}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+            ) : (
+              // Show message when wallet is not connected
+              <Stack
+                alignItems="center"
+                justifyContent="center"
+                sx={{
+                  pt: 8,
+                  px: 4,
+                  minHeight: 200,
+                }}
+              >
+                <Typography variant="h5" sx={{ mb: 2, textAlign: "center" }}>
+                  Connect Your Wallet
+                </Typography>
+                <Typography variant="body1" sx={{ textAlign: "center", color: "text.secondary" }}>
+                  Please connect your wallet to view DAO information and member details.
+                </Typography>
+              </Stack>
+            )}
           </Box>
         </Box>
+        {/* Only show members table when wallet is connected */}
+        {isWalletConnected && (
+          <Box
+            sx={{
+              pt: 4,
+              px: this.props.matchUpMd ? 7 : 2,
+              maxWidth: "100%",
+            }}
+          >
+            <Typography variant="h3">Members of Vegan Rob's DAO</Typography>
+            <Box
+              sx={{
+                pt: 3,
+                px: this.props.matchUpMd ? 6 : 0,
+              }}
+            >
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow
+                      sx={{
+                        "& th": {
+                          color: this.props.theme.palette.text.secondary,
+                        },
+                      }}
+                    >
+                      <TableCell align="left">No</TableCell>
+                      <TableCell align="center">Holder Address</TableCell>
+                      <TableCell align="center">Balance</TableCell>
+                      <TableCell align="center">Percentage</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {!this.state.loading
+                      ? this.state.realHolderTable.map((row, index) => (
+                          <TableRow
+                            key={index}
+                            sx={{
+                              "&:last-child td, &:last-child th": { border: 0 },
+                            }}
+                          >
+                            <TableCell align="left">{row.id}</TableCell>
+                            <TableCell align="center">{row.address}</TableCell>
+                            <TableCell align="center">{row.balance}</TableCell>
+                            <TableCell
+                              align="center"
+                              sx={{
+                                color: this.props.theme.palette.success.main,
+                                // color: index % 2 ? this.props.theme.palette.error.main : this.props.theme.palette.success.main
+                              }}
+                            >
+                              {row.percentage}%
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((row, key) => (
+                          <TableRow
+                            key={key}
+                            sx={{
+                              "&:last-child td, &:last-child th": { border: 0 },
+                            }}
+                          >
+                            <TableCell align="left">
+                              <Skeleton />
+                            </TableCell>
+                            <TableCell align="center">
+                              <Skeleton />
+                            </TableCell>
+                            <TableCell align="center">
+                              <Skeleton />
+                            </TableCell>
+                            <TableCell
+                              align="center"
+                              sx={{
+                                color: this.props.theme.palette.success.main,
+                                // color: index % 2 ? this.props.theme.palette.error.main : this.props.theme.palette.success.main
+                              }}
+                            >
+                              <Skeleton />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Stack
+                flexDirection="row"
+                alignItems="flex-end"
+                justifyContent="flex-end"
+                sx={{ pt: 2 }}
+              >
+                <Pagination
+                  count={Math.ceil(this.state.holders.length / pageStep)}
+                  variant="outlined"
+                  shape="rounded"
+                  onChange={(event, page) => this.handlePage(event, page)}
+                  page={this.state.page}
+                />
+              </Stack>
+            </Box>
+          </Box>
+        )}
       </Box>
     );
   }
