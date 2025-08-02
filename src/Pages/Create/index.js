@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { pinFileToIPFS } from "../../Utils/pinata";
 import { useSelector } from "react-redux";
 import Web3 from "web3";
+import toast from "react-hot-toast";
 import { RPC, daoABI, daoAddress } from "../../Constants/config";
 const web3 = new Web3(new Web3.providers.HttpProvider(RPC));
 const daoContract = new web3.eth.Contract(daoABI, daoAddress);
@@ -72,18 +73,29 @@ class Create extends React.Component {
     const response = await pinFileToIPFS(this.state.files[0]);
 
     if (response.success) {
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: web3.utils.toHex(1666600000) }],
-      });
+      try {
+        // Check if wallet is available
+        if (!window.ethereum) {
+          toast.error("No wallet found. Please install MetaMask or another Web3 wallet.");
+          return;
+        }
 
-      const linkedContract = new window.web3.eth.Contract(daoABI, daoAddress);
-      await linkedContract.methods
-        .createProposal(this.state.content + "", response.pinataUrl + "")
-        .send({ from: this.props.account })
-        .once("confirmation", async () => {
-          this.props.navigate("/elections");
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: web3.utils.toHex(1666600000) }],
         });
+
+        const linkedContract = new window.web3.eth.Contract(daoABI, daoAddress);
+        await linkedContract.methods
+          .createProposal(this.state.content + "", response.pinataUrl + "")
+          .send({ from: this.props.account })
+          .once("confirmation", async () => {
+            this.props.navigate("/elections");
+          });
+      } catch (error) {
+        console.error("Error creating proposal:", error);
+        toast.error("Failed to create proposal. Please try again.");
+      }
     } else {
       return false;
     }

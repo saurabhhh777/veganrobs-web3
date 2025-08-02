@@ -15,6 +15,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { useSelector } from "react-redux";
 import Web3 from "web3";
+import toast from "react-hot-toast";
 import {
   RPC,
   vrtABI,
@@ -72,30 +73,45 @@ class Vote extends React.Component {
 
   async vote(proposalID, trueOrFalse) {
     if (this.state.position === "GUEST") {
-      alert("You are not a Member!");
+      toast.error("You are not a Member!");
+      return;
     }
 
     const balance = await vrtContract.methods
       .balanceOf(this.props.account)
       .call();
     if (balance === 0) {
-      alert("you are not a member of Vegan Rob's DAO");
+      toast.error("You are not a member of Vegan Rob's DAO");
       return;
     }
 
-    await window.ethereum.request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: web3.utils.toHex(1666600000) }],
-    });
+    // Check if wallet is available
+    if (!window.ethereum) {
+      toast.error("No wallet found. Please install MetaMask or another Web3 wallet.");
+      return;
+    }
 
-    const linkedContract = new window.web3.eth.Contract(daoABI, daoAddress);
-    console.log(linkedContract);
-    await linkedContract.methods
-      .vote(proposalID, trueOrFalse)
-      .send({ from: this.props.account })
-      .once("confirmation", async () => {
-        this.init();
+    const votePromise = async () => {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: web3.utils.toHex(1666600000) }],
       });
+
+      const linkedContract = new window.web3.eth.Contract(daoABI, daoAddress);
+      console.log(linkedContract);
+      await linkedContract.methods
+        .vote(proposalID, trueOrFalse)
+        .send({ from: this.props.account })
+        .once("confirmation", async () => {
+          this.init();
+        });
+    };
+
+    toast.promise(votePromise(), {
+      loading: 'Voting...',
+      success: 'Vote submitted successfully!',
+      error: 'Failed to submit vote. Please try again.',
+    });
   }
 
   async closeVote(proposalID) {
@@ -103,22 +119,36 @@ class Vote extends React.Component {
       this.props.account !== this.state.owner &&
       this.props.account !== this.state.admin
     ) {
-      alert("you dont have a permission");
+      toast.error("You don't have permission to close this vote");
+      return;
     }
 
-    await window.ethereum.request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: web3.utils.toHex(1666600000) }],
-    });
+    // Check if wallet is available
+    if (!window.ethereum) {
+      toast.error("No wallet found. Please install MetaMask or another Web3 wallet.");
+      return;
+    }
 
-    const linkedContract = new window.web3.eth.Contract(daoABI, daoAddress);
-    await linkedContract.methods
-      .stopVoting(proposalID)
-      .send({ from: this.props.account })
-      .once("confirmation", async () => {
-        alert("Successfully Closed");
-        this.init(this.props);
+    const closeVotePromise = async () => {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: web3.utils.toHex(1666600000) }],
       });
+
+      const linkedContract = new window.web3.eth.Contract(daoABI, daoAddress);
+      await linkedContract.methods
+        .stopVoting(proposalID)
+        .send({ from: this.props.account })
+        .once("confirmation", async () => {
+          this.init(this.props);
+        });
+    };
+
+    toast.promise(closeVotePromise(), {
+      loading: 'Closing vote...',
+      success: 'Vote closed successfully!',
+      error: 'Failed to close vote. Please try again.',
+    });
   }
 
   render() {
