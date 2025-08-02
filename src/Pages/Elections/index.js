@@ -19,6 +19,7 @@ import { useSelector } from "react-redux";
 import Web3 from "web3";
 import { RPC, daoABI, daoAddress } from "../../Constants/config";
 import { unixStamp } from "../../Utils/date";
+import { getIPFSURL } from "../../Utils/pinata";
 
 const web3 = new Web3(new Web3.providers.HttpProvider(RPC));
 const daoContract = new web3.eth.Contract(daoABI, daoAddress);
@@ -94,6 +95,7 @@ class Elections extends React.Component {
       let electionCount = await daoContract.methods.proposalIndex().call();
       for (let i = 0; i < electionCount; i++) {
         const election = await daoContract.methods.proposals(i).call();
+        console.log("Election data in Elections page:", election); // Debug: Log the election data structure
         if (election.isVoteEnded) {
           ended++;
         } else {
@@ -287,7 +289,11 @@ class Elections extends React.Component {
             </Stack>
           </Stack>
           <Stack gap={2}>
-            {this.state.realElections.map((element, key) => (
+            {this.state.realElections.map((element, key) => {
+              console.log("Rendering election in Elections page:", element); // Debug: Log each element being rendered
+              console.log("Source field value:", element.source); // Debug: Log the source field
+              console.log("IPFS URL generated:", getIPFSURL(element.source)); // Debug: Log the IPFS URL
+              return (
               <Stack
                 flexDirection={this.props.matchUpMd ? "row" : "column"}
                 key={key}
@@ -340,19 +346,38 @@ class Elections extends React.Component {
                 >
                   {element.source ? (
                     <Box
-                      src={element.source}
+                      src={getIPFSURL(element.source)}
                       component="img"
                       sx={{ width: "100%" }}
+                      onError={(e) => {
+                        console.error("Image failed to load in Elections:", element.source);
+                        console.error("IPFS URL used:", getIPFSURL(element.source));
+                        // Show the icon when image fails
+                        e.target.style.display = "none";
+                        const icon = e.target.parentElement.querySelector('.election-icon');
+                        if (icon) icon.style.display = "block";
+                      }}
+                      onLoad={() => {
+                        console.log("Image loaded successfully in Elections:", element.source);
+                        console.log("IPFS URL used:", getIPFSURL(element.source));
+                      }}
                     />
                   ) : (
-                    <ElectionIcon
-                      color={
-                        this.props.theme.palette.mode === "dark"
-                          ? "#323232"
-                          : "#CBCBCB"
-                      }
-                    />
+                    <Typography variant="caption" sx={{ color: 'red' }}>
+                      No source: {JSON.stringify(element.source)}
+                    </Typography>
                   )}
+                  <ElectionIcon
+                    className="election-icon"
+                    color={
+                      this.props.theme.palette.mode === "dark"
+                        ? "#323232"
+                        : "#CBCBCB"
+                    }
+                    style={{
+                      display: element.source ? "none" : "block"
+                    }}
+                  />
                 </Stack>
                 <Stack gap={1} flex="auto">
                   <Typography variant="subtitle1">{element.name}</Typography>
@@ -513,7 +538,8 @@ class Elections extends React.Component {
                   </Stack>
                 </Stack>
               </Stack>
-            ))}
+            );
+            })}
           </Stack>
         </Box>
       </Box>

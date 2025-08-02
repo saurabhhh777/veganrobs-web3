@@ -86,6 +86,8 @@ class Create extends React.Component {
         });
 
         const linkedContract = new window.web3.eth.Contract(daoABI, daoAddress);
+        console.log("Storing proposal with content:", this.state.content);
+        console.log("Storing proposal with image URL:", response.pinataUrl);
         await linkedContract.methods
           .createProposal(this.state.content + "", response.pinataUrl + "")
           .send({ from: this.props.account })

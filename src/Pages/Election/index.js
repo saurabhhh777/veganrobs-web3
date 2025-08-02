@@ -19,6 +19,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { unixStamp } from "../../Utils/date";
 import Web3 from "web3";
 import toast from "react-hot-toast";
+import { getIPFSURL } from "../../Utils/pinata";
 import {
   RPC,
   vrtABI,
@@ -372,7 +373,7 @@ class Election extends React.Component {
                 component="img"
                 src={
                   this.state.election.source
-                    ? this.state.election.source
+                    ? getIPFSURL(this.state.election.source)
                     : "/images/election.png"
                 }
                 sx={{ maxWidth: "100%", maxHeight: "100%" }}

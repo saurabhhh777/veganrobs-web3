@@ -16,6 +16,7 @@ import { useTheme } from "@mui/material/styles";
 import { useSelector } from "react-redux";
 import Web3 from "web3";
 import toast from "react-hot-toast";
+import { getIPFSURL } from "../../Utils/pinata";
 import {
   RPC,
   vrtABI,
@@ -51,6 +52,7 @@ class Vote extends React.Component {
       let electionCount = await daoContract.methods.proposalIndex().call();
       for (let i = 0; i < electionCount; i++) {
         const election = await daoContract.methods.proposals(i).call();
+        console.log("Election data:", election); // Debug: Log the election data structure
         const vote = await daoContract.methods
           .votesHistory(this.props.account, election.id / 1)
           .call();
@@ -186,104 +188,114 @@ class Vote extends React.Component {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {this.state.elections.map((element, key) => (
-                      <TableRow
-                        key={key}
-                        sx={{
-                          "&:last-child td, &:last-child th": {
-                            border: 0,
-                          },
-                          "& td, & th": {
-                            py: 0.5,
-                          },
-                        }}
-                      >
-                        <TableCell align="left">{key + 1}</TableCell>
-                        <TableCell align="center">
-                          <Stack
-                            // flexDirection="row"
-                            alignItems="center"
-                            justifyContent="center"
-                            sx={{
-                              width: 60,
-                              height: 60,
-                              borderRadius: 2,
-                              border: `1px solid ${this.props.theme.palette.divider}`,
-                            }}
-                          >
-                            <Box
-                              src={
-                                element.source
-                                  ? element.source
-                                  : "/images/election.png"
-                              }
-                              component="img"
-                              sx={{ width: 40 }}
-                            />
-                          </Stack>
-                        </TableCell>
-                        <TableCell align="center">{element.name}</TableCell>
-                        <TableCell align="center">
-                          <Stack
-                            flexDirection="row"
-                            alignItems="center"
-                            justifyContent="center"
-                            gap={1}
-                          >
-                            <Button
-                              variant="outlined"
-                              color="success"
-                              size="small"
-                              disabled={
-                                this.props.position === "GUEST" ? true : false
-                              }
-                              onClick={() => this.vote(element.id / 1, true)}
+                    {this.state.elections.map((element, key) => {
+                      console.log("Rendering element:", element); // Debug: Log each element being rendered
+                      return (
+                        <TableRow
+                          key={key}
+                          sx={{
+                            "&:last-child td, &:last-child th": {
+                              border: 0,
+                            },
+                            "& td, & th": {
+                              py: 0.5,
+                            },
+                          }}
+                        >
+                          <TableCell align="left">{key + 1}</TableCell>
+                          <TableCell align="center">
+                            <Stack
+                              // flexDirection="row"
+                              alignItems="center"
+                              justifyContent="center"
                               sx={{
-                                color: this.props.theme.palette.text.primary,
+                                width: 60,
+                                height: 60,
+                                borderRadius: 2,
+                                border: `1px solid ${this.props.theme.palette.divider}`,
                               }}
                             >
-                              Yes
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              color="error"
-                              size="small"
-                              disabled={
-                                this.props.position === "GUEST" ? true : false
-                              }
-                              onClick={() => this.vote(element.id / 1, false)}
-                              sx={{
-                                color: this.props.theme.palette.text.primary,
-                              }}
+                              <Box
+                                src={
+                                  element.source
+                                    ? getIPFSURL(element.source)
+                                    : "/images/election.png"
+                                }
+                                component="img"
+                                sx={{ width: 40 }}
+                                onError={(e) => {
+                                  console.error("Image failed to load:", element.source);
+                                  e.target.src = "/images/election.png";
+                                }}
+                                onLoad={() => {
+                                  console.log("Image loaded successfully:", element.source);
+                                }}
+                              />
+                            </Stack>
+                          </TableCell>
+                          <TableCell align="center">{element.name}</TableCell>
+                          <TableCell align="center">
+                            <Stack
+                              flexDirection="row"
+                              alignItems="center"
+                              justifyContent="center"
+                              gap={1}
                             >
-                              No
-                            </Button>
-                            {this.props.account === this.state.admin ||
-                            this.props.account === this.state.owner ? (
                               <Button
                                 variant="outlined"
-                                color="primary"
+                                color="success"
                                 size="small"
                                 disabled={
-                                  this.props.position === "GUEST" ||
-                                  this.props.position === "MEMBER"
-                                    ? true
-                                    : false
+                                  this.props.position === "GUEST" ? true : false
                                 }
-                                onClick={() => this.closeVote(element.id / 1)}
+                                onClick={() => this.vote(element.id / 1, true)}
                                 sx={{
                                   color: this.props.theme.palette.text.primary,
                                 }}
                               >
-                                Close Voting
+                                Yes
                               </Button>
-                            ) : (
-                              <></>
-                            )}
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                              <Button
+                                variant="outlined"
+                                color="error"
+                                size="small"
+                                disabled={
+                                  this.props.position === "GUEST" ? true : false
+                                }
+                                onClick={() => this.vote(element.id / 1, false)}
+                                sx={{
+                                  color: this.props.theme.palette.text.primary,
+                                }}
+                              >
+                                No
+                              </Button>
+                              {this.props.account === this.state.admin ||
+                              this.props.account === this.state.owner ? (
+                                <Button
+                                  variant="outlined"
+                                  color="primary"
+                                  size="small"
+                                  disabled={
+                                    this.props.position === "GUEST" ||
+                                    this.props.position === "MEMBER"
+                                      ? true
+                                      : false
+                                  }
+                                  onClick={() => this.closeVote(element.id / 1)}
+                                  sx={{
+                                    color: this.props.theme.palette.text.primary,
+                                  }}
+                                >
+                                  Close Voting
+                                </Button>
+                              ) : (
+                                <></>
+                              )}
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </TableContainer>
